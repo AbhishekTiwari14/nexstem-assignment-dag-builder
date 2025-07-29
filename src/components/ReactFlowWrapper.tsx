@@ -16,6 +16,7 @@ import "reactflow/dist/style.css"
 
 import { useCallback, useEffect, useState } from "react"
 import CustomNode from "./CustomNode"
+import { validateDag } from "../utils/validateDag"
 
 const nodeTypes = {
   custom: CustomNode,
@@ -30,6 +31,8 @@ export default function ReactFlowWrapper() {
 
   const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
   const [selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+
+  const validationResult = validateDag(nodes, edges)
 
   useEffect(() => {
     const handleDeleteNode = (e: Event) => {
@@ -120,6 +123,15 @@ export default function ReactFlowWrapper() {
 
   return (
     <div className="w-full h-screen relative">
+      <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm z-50">
+        {validationResult.isValid ? (
+          <span className="text-green-600 font-medium">✅ DAG is valid</span>
+        ) : (
+          <span className="text-red-500 font-medium">
+            ❌ {validationResult.reason}
+          </span>
+        )}
+      </div>
       <button
         onClick={addNode}
         className="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg z-50 transition-all"
