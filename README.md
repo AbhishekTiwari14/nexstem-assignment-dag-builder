@@ -1,69 +1,102 @@
-# React + TypeScript + Vite
+DAG Editor — Nexstem Frontend Assignment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive DAG (Directed Acyclic Graph) editor built with React, React Flow, and Tailwind CSS, supporting custom node creation, edge drawing with direction validation, auto layout, real-time validation, and JSON preview.
 
-Currently, two official plugins are available:
+🔗 Live Demo: [Vercel Link](https://nexstem-assignment-dag-builder.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🚀 Setup Instructions
 
-## Expanding the ESLint configuration
+# 1. Clone the repository
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+git clone https://github.com/your-username/nexstem-dag-editor.git
+cd nexstem-dag-editor
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# 2. Install dependencies
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+# 3. Start the development server
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+npm run dev
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+# App will run at http://localhost:5173
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+🧩 Libraries & Decisions
+
+🔧 Core Libraries
+
+React with Vite for fast development and HMR
+
+React Flow to handle node-edge rendering and interactivity
+
+Tailwind CSS for UI styling and layout
+
+Dagre for auto layout of DAGs
+
+🧠 Why These?
+
+React Flow provides excellent node/edge composition, events, and selection APIs.
+
+Dagre is a well-tested library for laying out DAGs top-to-bottom or left-to-right.
+
+Tailwind allows rapid component styling with utility classes, ideal for hackathon/prototype speed.
+
+🧪 Features
+
+✅ Add nodes with custom labels
+
+✅ Drag-and-drop edge creation (right ➝ left only)
+
+✅ Validation to block self-loops and invalid edge directions
+
+✅ Delete node/edge via Delete key or node-level ✕ button
+
+✅ Auto Layout using Dagre (Left-to-Right)
+
+✅ Real-time DAG Validator:
+
+At least 2 nodes
+
+No cycles
+
+No disconnected nodes
+
+✅ JSON Preview panel of current nodes & edges
+
+📷 Screenshots:
+
+![alt text](image.png)
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
+
+🔗 Live Demo: [Vercel Link](https://nexstem-assignment-dag-builder.vercel.app/)
+
+🚧 Challenges Faced
+
+🧩 React Flow
+
+Had to deeply understand how React Flow handles custom nodes, handles, and events.
+
+useReactFlow() error: needed to switch to onInit() with ReactFlowInstance due to internal Zustand store restrictions.
+
+🔁 DAG Validation
+
+Implementing real-time cycle detection and disconnected-node checks required writing a DFS algorithm from scratch.
+
+🎯 Auto Layout
+
+Dagre doesn’t update the React Flow layout directly, so node positions had to be mapped and manually updated.
+
+Ensuring fitView() worked required using the onInit pattern (not useReactFlow).
+
+🧼 UX Decisions
+
+Balanced keyboard interactions with visual delete ✕ icon.
+
+Limited button noise by placing key actions in fixed corners.
+
+🙌 Author
+
+Abhishek Tiwari | f20202118@goa.bits-pilani.ac.in
