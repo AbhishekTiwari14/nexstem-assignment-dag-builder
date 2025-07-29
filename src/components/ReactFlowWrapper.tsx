@@ -139,6 +139,11 @@ export default function ReactFlowWrapper() {
         + Add Node
       </button>
 
+      <div className="absolute  top-4 right-4 w-80 max-h-48 overflow-auto bg-white border text-xs p-2 rounded shadow z-50 font-mono whitespace-pre-wrap">
+        <strong className="block mb-1 text-gray-600">📦 DAG JSON Preview</strong>
+        <pre>{JSON.stringify({ nodes, edges }, null, 2)}</pre>
+      </div>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
