@@ -5,6 +5,7 @@ import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
+  MarkerType,
   type Node,
   type Edge,
   type NodeChange,
@@ -13,7 +14,12 @@ import ReactFlow, {
 } from "reactflow"
 import "reactflow/dist/style.css"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import CustomNode from "./CustomNode"
+
+const nodeTypes = {
+  custom: CustomNode,
+}
 
 let id = 0
 const getId = () => `node_${id++}`
@@ -21,6 +27,38 @@ const getId = () => `node_${id++}`
 export default function ReactFlowWrapper() {
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
+
+  const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
+  const [selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+
+  useEffect(() => {
+    const handleDeleteNode = (e: Event) => {
+      const idToDelete = (e as CustomEvent).detail
+      setNodes((nodes) => nodes.filter((n) => n.id !== idToDelete))
+      setEdges((edges) =>
+        edges.filter((e) => e.source !== idToDelete && e.target !== idToDelete)
+      )
+    }
+
+    window.addEventListener("delete-node", handleDeleteNode)
+    return () => window.removeEventListener("delete-node", handleDeleteNode)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete") {
+        setNodes((nds) =>
+          nds.filter((node) => !selectedNodes.some((sel) => sel.id === node.id))
+        )
+        setEdges((eds) =>
+          eds.filter((edge) => !selectedEdges.some((sel) => sel.id === edge.id))
+        )
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [selectedNodes, selectedEdges])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -32,10 +70,36 @@ export default function ReactFlowWrapper() {
       setEdges((eds) => applyEdgeChanges(changes, eds)),
     []
   )
-  const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    []
-  )
+
+  const onConnect = useCallback((connection: Connection) => {
+    const { source, target, sourceHandle, targetHandle } = connection
+
+    if (!source || !target) return
+
+    if (source === target) {
+      alert("❌ Self-loops are not allowed.")
+      return
+    }
+
+    if (sourceHandle === "target" || targetHandle === "source") {
+      alert(
+        "❌ Invalid connection: must go from output (right) to input (left)."
+      )
+      return
+    }
+
+    setEdges((eds) =>
+      addEdge(
+        {
+          ...connection,
+          markerEnd: {
+            type: MarkerType.Arrow,
+          },
+        },
+        eds
+      )
+    )
+  }, [])
 
   const addNode = () => {
     const label = prompt("Enter node label")
@@ -48,7 +112,7 @@ export default function ReactFlowWrapper() {
         x: Math.random() * 250,
         y: Math.random() * 250,
       },
-      type: "default",
+      type: "custom", // 🔑 Important for using your custom node with handles
     }
 
     setNodes((nds) => [...nds, newNode])
@@ -56,7 +120,6 @@ export default function ReactFlowWrapper() {
 
   return (
     <div className="w-full h-screen relative">
-      {/* Add Node button outside ReactFlow, but inside relative container */}
       <button
         onClick={addNode}
         className="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg z-50 transition-all"
@@ -71,6 +134,11 @@ export default function ReactFlowWrapper() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         fitView
+        nodeTypes={nodeTypes}
+        onSelectionChange={({ nodes, edges }) => {
+          setSelectedNodes(nodes)
+          setSelectedEdges(edges)
+        }}
       >
         <MiniMap />
         <Controls />
