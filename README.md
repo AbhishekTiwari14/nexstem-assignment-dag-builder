@@ -8,8 +8,7 @@ An interactive DAG (Directed Acyclic Graph) editor built with React, React Flow,
 
 # 1. Clone the repository
 
-git clone https://github.com/your-username/nexstem-dag-editor.git
-cd nexstem-dag-editor
+git clone https://github.com/AbhishekTiwari14/nexstem-assignment-dag-builder
 
 # 2. Install dependencies
 
