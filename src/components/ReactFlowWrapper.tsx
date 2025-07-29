@@ -11,12 +11,16 @@ import ReactFlow, {
   type NodeChange,
   type EdgeChange,
   type Connection,
+  type ReactFlowInstance,
+  ReactFlowProvider,
 } from "reactflow"
+
 import "reactflow/dist/style.css"
 
 import { useCallback, useEffect, useState } from "react"
 import CustomNode from "./CustomNode"
 import { validateDag } from "../utils/validateDag"
+import { getLayoutedElements } from "../utils/autoLayoutDag"
 
 const nodeTypes = {
   custom: CustomNode,
@@ -31,6 +35,9 @@ export default function ReactFlowWrapper() {
 
   const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
   const [selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null)
 
   const validationResult = validateDag(nodes, edges)
 
@@ -121,46 +128,66 @@ export default function ReactFlowWrapper() {
     setNodes((nds) => [...nds, newNode])
   }
 
+  const handleAutoLayout = () => {
+    const layouted = getLayoutedElements(nodes, edges, "LR")
+    setNodes([...layouted])
+    setTimeout(() => {
+      if (reactFlowInstance) {
+        reactFlowInstance.fitView()
+      }
+    }, 0)
+  }
+
   return (
-    <div className="w-full h-screen relative">
-      <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm z-50">
-        {validationResult.isValid ? (
-          <span className="text-green-600 font-medium">✅ DAG is valid</span>
-        ) : (
-          <span className="text-red-500 font-medium">
-            ❌ {validationResult.reason}
-          </span>
-        )}
-      </div>
-      <button
-        onClick={addNode}
-        className="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg z-50 transition-all"
-      >
-        + Add Node
-      </button>
+    <ReactFlowProvider>
+      <div className="w-full h-screen relative">
+        <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm z-50">
+          {validationResult.isValid ? (
+            <span className="text-green-600 font-medium">✅ DAG is valid</span>
+          ) : (
+            <span className="text-red-500 font-medium">
+              ❌ {validationResult.reason}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={addNode}
+          className="absolute bottom-6 right-48 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg z-50 transition-all"
+        >
+          + Add Node
+        </button>
+        <button
+          onClick={handleAutoLayout}
+          className="absolute bottom-6 right-12 bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg z-50 transition-all"
+        >
+          Auto Layout
+        </button>
+        <div className="absolute  top-4 right-4 w-80 max-h-48 overflow-auto bg-white border text-xs p-2 rounded shadow z-50 font-mono whitespace-pre-wrap">
+          <strong className="block mb-1 text-gray-600">
+            📦 DAG JSON Preview
+          </strong>
+          <pre>{JSON.stringify({ nodes, edges }, null, 2)}</pre>
+        </div>
 
-      <div className="absolute  top-4 right-4 w-80 max-h-48 overflow-auto bg-white border text-xs p-2 rounded shadow z-50 font-mono whitespace-pre-wrap">
-        <strong className="block mb-1 text-gray-600">📦 DAG JSON Preview</strong>
-        <pre>{JSON.stringify({ nodes, edges }, null, 2)}</pre>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          fitView
+          nodeTypes={nodeTypes}
+          onSelectionChange={({ nodes, edges }) => {
+            setSelectedNodes(nodes)
+            setSelectedEdges(edges)
+          }}
+          onInit={(instance) => setReactFlowInstance(instance)}
+        >
+          <MiniMap />
+          <Controls />
+          <Background />
+        </ReactFlow>
       </div>
-
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView
-        nodeTypes={nodeTypes}
-        onSelectionChange={({ nodes, edges }) => {
-          setSelectedNodes(nodes)
-          setSelectedEdges(edges)
-        }}
-      >
-        <MiniMap />
-        <Controls />
-        <Background />
-      </ReactFlow>
-    </div>
+    </ReactFlowProvider>
   )
 }
